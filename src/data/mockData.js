@@ -1,46 +1,90 @@
-// Mock sensor data for plants
+// Enhanced plant data with multi-sensor support
 export const mockPlants = [
   {
     id: 1,
     name: "Monstera",
-    moisture: 45,
-    temperature: 22.3,
-    pumpStatus: false,
+    species: "Monstera deliciosa",
     location: "Living Room",
     lastWatered: "2025-08-20T14:30:00Z",
-    optimalMoisture: { min: 40, max: 70 }
+    optimalMoisture: { min: 40, max: 70 },
+    optimalTemperature: { min: 18, max: 27 },
+    sensorData: {
+      moisture: { value: 45, sensorId: 1, lastReading: "2025-08-22T10:30:00Z" },
+      temperature: { value: 22.3, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      humidity: { value: 65, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      pumpStatus: { value: false, sensorId: 1, lastReading: "2025-08-22T10:30:00Z" }
+    },
+    plantedDate: "2024-03-15",
+    notes: "Thriving in indirect light, watered weekly"
   },
   {
     id: 2, 
     name: "Aloe Vera",
-    moisture: 68,
-    temperature: 24.1,
-    pumpStatus: true,
+    species: "Aloe barbadensis",
     location: "Kitchen",
     lastWatered: "2025-08-21T08:15:00Z",
-    optimalMoisture: { min: 30, max: 50 }
+    optimalMoisture: { min: 30, max: 50 },
+    optimalTemperature: { min: 16, max: 24 },
+    sensorData: {
+      moisture: { value: 68, sensorId: 2, lastReading: "2025-08-22T10:29:00Z" },
+      temperature: { value: 24.1, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      humidity: { value: 65, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      pumpStatus: { value: true, sensorId: 2, lastReading: "2025-08-22T10:29:00Z" }
+    },
+    plantedDate: "2024-01-10",
+    notes: "Needs well-draining soil, minimal watering"
   },
   {
     id: 3,
     name: "Snake Plant",
-    moisture: 32,
-    temperature: 21.8,
-    pumpStatus: false,
+    species: "Sansevieria trifasciata",
     location: "Bedroom", 
     lastWatered: "2025-08-19T16:45:00Z",
-    optimalMoisture: { min: 25, max: 45 }
+    optimalMoisture: { min: 25, max: 45 },
+    optimalTemperature: { min: 15, max: 24 },
+    sensorData: {
+      moisture: { value: 32, sensorId: 3, lastReading: "2025-08-21T18:45:00Z" },
+      temperature: { value: 21.8, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      humidity: { value: 65, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      pumpStatus: { value: false, sensorId: 3, lastReading: "2025-08-21T18:45:00Z" }
+    },
+    plantedDate: "2024-05-20",
+    notes: "Very drought tolerant, prefers neglect"
   },
   {
     id: 4,
     name: "Fiddle Leaf Fig",
-    moisture: 55,
-    temperature: 23.5,
-    pumpStatus: false,
+    species: "Ficus lyrata",
     location: "Office",
     lastWatered: "2025-08-20T11:20:00Z",
-    optimalMoisture: { min: 50, max: 75 }
+    optimalMoisture: { min: 50, max: 75 },
+    optimalTemperature: { min: 18, max: 26 },
+    sensorData: {
+      temperature: { value: 23.5, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" },
+      humidity: { value: 65, sensorId: 4, lastReading: "2025-08-22T10:30:00Z" }
+    },
+    plantedDate: "2024-02-28",
+    notes: "No dedicated watering sensor yet - needs manual monitoring"
   }
 ];
+
+// Helper functions for plant sensor data
+export const getPlantSensorValue = (plant, dataType) => {
+  return plant.sensorData?.[dataType]?.value || null;
+};
+
+export const getPlantSensorLastReading = (plant, dataType) => {
+  return plant.sensorData?.[dataType]?.lastReading || null;
+};
+
+export const getPlantSensorId = (plant, dataType) => {
+  return plant.sensorData?.[dataType]?.sensorId || null;
+};
+
+// Backwards compatibility getters
+export const getPlantMoisture = (plant) => getPlantSensorValue(plant, 'moisture');
+export const getPlantTemperature = (plant) => getPlantSensorValue(plant, 'temperature');
+export const getPlantPumpStatus = (plant) => getPlantSensorValue(plant, 'pumpStatus');
 
 // Generate realistic 24-hour chart data
 export const generateChartData = (plantId) => {
@@ -77,8 +121,16 @@ export const generateChartData = (plantId) => {
 // System overview stats
 export const systemStats = {
   totalPlants: mockPlants.length,
-  plantsNeedingWater: mockPlants.filter(p => p.moisture < p.optimalMoisture.min).length,
-  activePumps: mockPlants.filter(p => p.pumpStatus).length,
-  avgTemperature: Math.round((mockPlants.reduce((sum, p) => sum + p.temperature, 0) / mockPlants.length) * 10) / 10,
+  plantsNeedingWater: mockPlants.filter(p => {
+    const moisture = getPlantMoisture(p);
+    return moisture && moisture < p.optimalMoisture.min;
+  }).length,
+  activePumps: mockPlants.filter(p => getPlantPumpStatus(p)).length,
+  avgTemperature: (() => {
+    const plantsWithTemp = mockPlants.filter(p => getPlantTemperature(p) !== null);
+    if (plantsWithTemp.length === 0) return null;
+    const sum = plantsWithTemp.reduce((sum, p) => sum + getPlantTemperature(p), 0);
+    return Math.round((sum / plantsWithTemp.length) * 10) / 10;
+  })(),
   lastUpdated: new Date().toISOString()
 };

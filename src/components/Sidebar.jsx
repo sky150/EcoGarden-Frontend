@@ -1,10 +1,11 @@
 import React from 'react';
-import { Home, Leaf, Settings, Sun, Moon } from 'lucide-react';
+import { Home, Leaf, Settings, Sun, Moon, Cpu } from 'lucide-react';
 
 const Sidebar = ({ activeView, setActiveView, darkMode, toggleDarkMode }) => {
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'plants', label: 'Plants', icon: Leaf },
+    { id: 'devices', label: 'Devices & Sensors', icon: Cpu },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
